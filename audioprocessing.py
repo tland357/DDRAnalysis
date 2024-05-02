@@ -13,16 +13,17 @@ def convertToFrequencyDomain(filename, sm:smFile):
     spectrogram = np.abs(stft)
 
     samples_to_spec_samples = spectrogram.shape[1] / audio.shape[0]
-    print(spectrogram_scale_factor)
 
     offset_seconds = 0 if sm is None else sm.offset
     offset_samples = offset_seconds * samples_per_second
     
     if offset_samples > 0:
         zero_array = np.zeros((spectrogram.shape[0], int(round(offset_samples * samples_to_spec_samples))))
-
+        spectrogram = np.hstack((zero_array, spectrogram))
+    elif offset_samples < 0:
+        spectrogram = spectrogram[:, int(round(-offset_samples * samples_to_spec_samples)):]
     spectrogram_db = librosa.amplitude_to_db(spectrogram, ref=np.max)
-    return spectrogram_db, sample_rate
+    return spectrogram_db, samples_per_second
 
 def getMeasure(spectrogram, total_measures, measure_number, dim=None):
     width = int(spectrogram.shape[1] / total_measures)
@@ -35,8 +36,14 @@ def getMeasure(spectrogram, total_measures, measure_number, dim=None):
     
 
 if __name__ == '__main__':
-    spectrogram, sample_rate = convertToFrequencyDomain('C:\\Users\\ikamo\\Downloads\\bass_house_sample.ogg', None)
-    plt.figure(figsize=(4, 4))
+    
+    spectrogram, sample_rate = convertToFrequencyDomain('GOT_REAL.mp3', smFile('GOT_REAL.sm'))
+    plt.figure(figsize=(15, 4))
+    
+    librosa.display.specshow(spectrogram, sr=sample_rate, x_axis='time', y_axis='hz')
+    plt.colorbar(format='%+2.0f dB')
+    plt.title('Spectrogram')
+    plt.show()
     for i in range(9):
         librosa.display.specshow(getMeasure(spectrogram, 9, i, (32,32)), sr=sample_rate, x_axis='time', y_axis='hz')
         plt.colorbar(format='%+2.0f dB')

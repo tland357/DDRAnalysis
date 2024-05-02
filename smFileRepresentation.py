@@ -28,6 +28,9 @@ class bpmList:
         return repr(self._data)
 
 class smFile:
-    def __init__(self, textInput) -> None:
-        self.offset = 0.0
-        self.bpms = bpmList()
+    def __init__(self, url) -> None:
+        with open(url, 'r') as file:
+            lines = file.readlines()
+            offsetLine = [x for x in lines if x.startswith('#OFFSET:')][0]
+            self.offset = float(offsetLine.replace('#OFFSET:', '').replace('\n','').replace(';',''))
+            self.bpms = bpmList()
